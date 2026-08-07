@@ -1,0 +1,23 @@
+services:
+  honeypot:
+    build: .
+    command: python -m honeypot.server --port 2222
+    ports:
+      - "2222:2222"
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    restart: unless-stopped
+
+  dashboard:
+    build: .
+    command: python -m dashboard.app
+    ports:
+      - "8080:8080"
+    environment:
+      - TARGET_LAT=35.6892
+      - TARGET_LON=51.3890
+      - TARGET_LABEL=Honeypot
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
