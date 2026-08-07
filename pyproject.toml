@@ -1,0 +1,21 @@
+[project]
+name = "live-attack-map"
+version = "1.0.0"
+description = "A live attack map: fake SSH honeypot + real-time dashboard"
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.0",
+    "flask-socketio>=5.3",
+    "paramiko>=3.4",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.4"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
