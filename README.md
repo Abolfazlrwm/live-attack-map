@@ -29,6 +29,7 @@ graph LR
     C --> D[Dashboard backend]
     D -->|WebSocket| E[Leaflet map + stats panel]
     D -->|REST| F[/api/attacks/]
+```
 
     🚀 Quick Start — copy everything below
 Docker (fastest) — one line, one terminal
