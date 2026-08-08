@@ -7,9 +7,12 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 > A fake SSH honeypot that logs **real** brute-force attempts from the internet
-> and streams them to a real-time animated world map.
+> and streams them to a **real-time animated world map** dashboard.
 
-![Demo](docs/demo.gif)
+<!--
+   Demo: add your demo.gif inside /docs and uncomment the line below
+   ![Demo](docs/demo.gif)
+-->
 
 ## ✨ Features
 
@@ -31,4 +34,3 @@ graph LR
     C --> D[Dashboard backend]
     D -->|WebSocket| E[Leaflet map + stats panel]
     D -->|REST| F[/api/attacks/]
-```
