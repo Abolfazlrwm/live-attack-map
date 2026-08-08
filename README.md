@@ -36,32 +36,17 @@ graph LR
     D -->|REST| F[/api/attacks/]
 
 🚀 Quick Start
-Option 1: Docker (recommended)
-Copy-paste, step by step:
+⚡ One-shot: copy everything into one terminal
+Docker (fastest):
 
 bash
 
 
 
-# 1. Clone the repository
-git clone https://github.com/Abolfazlrwm/live-attack-map.git
+git clone https://github.com/Abolfazlrwm/live-attack-map.git && cd live-attack-map && docker compose up --build
+Then open http://localhost:8080 — done. ✅
 
-# 2. Enter the project directory
-cd live-attack-map
-
-# 3. Build and start everything (honeypot + dashboard)
-docker compose up --build
-Then open your browser:
-
-
-
-
-http://localhost:8080
-The honeypot listens on port 2222. The moment it's up, real internet scanners start hitting it — no setup needed.
-
-Option 2: Manual (without Docker)
-1. Clone & install
-Windows (PowerShell):
+Manual (no Docker) — Windows PowerShell:
 
 powershell
 
@@ -72,7 +57,13 @@ cd live-attack-map
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-Linux / macOS:
+Start-Process python -ArgumentList "-m","honeypot.server","--port","2222"
+Start-Process python -ArgumentList "-m","dashboard.app"
+Start-Sleep -Seconds 2
+python tools/seed.py --count 60
+Open http://localhost:8080 — the map fills with animated attacks within seconds.
+
+Manual — Linux / macOS:
 
 bash
 
@@ -83,30 +74,18 @@ cd live-attack-map
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-2. Run (two terminals)
-Terminal 1 — start the honeypot:
-
-bash
-
-
-
-python -m honeypot.server --port 2222
-Terminal 2 — start the dashboard:
-
-bash
-
-
-
-python -m dashboard.app
-3. (Optional) Seed demo attacks so the map fills up instantly
-Open a third terminal:
-
-bash
-
-
-
+python -m honeypot.server --port 2222 &
+python -m dashboard.app &
 python tools/seed.py --count 60
-Now open http://localhost:8080 — you'll see animated attack lines from cities all over the world within seconds.
+Open http://localhost:8080.
+
+🧪 Test everything (one block)
+bash
+
+
+
+pip install pytest ruff && ruff check . && pytest -v
+Expected result: 5 tests passed ✅
 
 ⚙️ Configuration (environment variables)
 
@@ -124,21 +103,6 @@ bash
 
 
 TARGET_LAT=48.8566 TARGET_LON=2.3522 TARGET_LABEL=Paris python -m dashboard.app
-🧪 Testing
-bash
-
-
-
-# 1. Install dev dependencies
-pip install pytest ruff
-
-# 2. Lint the code
-ruff check .
-
-# 3. Run the test suite
-pytest -v
-Expected result: 5 tests passed ✅
-
 📁 Project Structure
 
 
