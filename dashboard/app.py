@@ -111,3 +111,6 @@ def main() -> None:
         debug=False,
         allow_unsafe_werkzeug=True,
     )
+    
+if __name__ == "__main__":
+    main()
