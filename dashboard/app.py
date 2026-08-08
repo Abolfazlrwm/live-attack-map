@@ -103,14 +103,9 @@ def main() -> None:
     global _polling
     if not _polling:
         _polling = True
+        with _recent_lock:
+            _recent.extend(enrich(r) for r in load_recent())
         socketio.start_background_task(tail_logs)
-    socketio.run(
-        app,
-        host="0.0.0.0",
-        port=int(os.getenv("PORT", "8080")),
-        debug=False,
-        allow_unsafe_werkzeug=True,
-    )
     
 if __name__ == "__main__":
     main()
