@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #0b1120; --panel: #111a2e; --border: #1e293b;
@@ -30,6 +31,8 @@
   .feed .row { display: flex; gap: 8px; padding: 2px 0; border-bottom: 1px dashed #16233c; }
   .feed .ip { color: var(--accent); } .feed .usr { color: #fbbf24; }
   .empty { color: var(--muted); text-align: center; padding: 20px; font-size: 0.8rem; }
+  .timeline { padding: 12px; border-bottom: 1px solid var(--border); }
+  .timeline h3 { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
 </style>
 </head>
 <body>
@@ -41,6 +44,10 @@
     <div class="stat"><div class="num" id="unique">0</div><div class="lbl">Unique IPs</div></div>
     <div class="stat"><div class="num" id="last60">0</div><div class="lbl">Last 60s</div></div>
     <div class="stat"><div class="num" id="countries">0</div><div class="lbl">Countries</div></div>
+  </div>
+  <div class="timeline">
+    <h3>Attacks / minute (last 30m)</h3>
+    <canvas id="timeline-chart" height="80"></canvas>
   </div>
   <div class="lists">
     <h3>Top countries</h3><ul id="top-countries"></ul>
@@ -142,6 +149,33 @@ setInterval(() => {
   const n = events.filter(e => new Date(e.timestamp).getTime() >= cutoff).length;
   document.getElementById('last60').textContent = n;
 }, 1000);
+
+// attacks-per-minute timeline chart
+const timelineCtx = document.getElementById('timeline-chart').getContext('2d');
+const timelineChart = new Chart(timelineCtx, {
+  type: 'bar',
+  data: { labels: [], datasets: [{ data: [], backgroundColor: '#f43f5e' }] },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#64748b', maxTicksLimit: 6 }, grid: { display: false } },
+      y: { ticks: { color: '#64748b', precision: 0 }, grid: { color: '#1e293b' } }
+    }
+  }
+});
+
+async function refreshTimeline() {
+  try {
+    const res = await fetch('/api/timeline?minutes=30');
+    const data = await res.json();
+    timelineChart.data.labels = data.map(d => d.time);
+    timelineChart.data.datasets[0].data = data.map(d => d.count);
+    timelineChart.update();
+  } catch (e) { /* dashboard still works without the chart */ }
+}
+refreshTimeline();
+setInterval(refreshTimeline, 15000);
 </script>
 </body>
 </html>
