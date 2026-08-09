@@ -4,9 +4,10 @@ import json
 import os
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO
 
 from .geo import geolocate
@@ -92,6 +93,27 @@ def attacks():
         return jsonify(list(_recent))
 
 
+@app.get("/api/timeline")
+def timeline():
+    """Attack counts bucketed per minute, for the last `minutes` (default 30)."""
+    minutes = int(request.args.get("minutes", "30"))
+    now = datetime.now(timezone.utc).replace(second=0, microsecond=0)
+    buckets = {now - timedelta(minutes=i): 0 for i in range(minutes - 1, -1, -1)}
+    with _recent_lock:
+        records = list(_recent)
+    for record in records:
+        try:
+            ts = datetime.fromisoformat(record["timestamp"]).astimezone(timezone.utc)
+        except (KeyError, ValueError):
+            continue
+        bucket = ts.replace(second=0, microsecond=0)
+        if bucket in buckets:
+            buckets[bucket] += 1
+    return jsonify(
+        [{"time": t.strftime("%H:%M"), "count": c} for t, c in sorted(buckets.items())]
+    )
+
+
 @socketio.on("connect")
 def on_connect():
     with _recent_lock:
@@ -103,6 +125,8 @@ def main() -> None:
     global _polling
     if not _polling:
         _polling = True
+        with _recent_lock:
+            _recent.extend(enrich(r) for r in load_recent())
         socketio.start_background_task(tail_logs)
     socketio.run(
         app,
