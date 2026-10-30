@@ -63,7 +63,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18
 }).addTo(map);
 
-const TARGET = [35.6892, 51.3890];
+let TARGET = [25, 20];
 const events = [];
 const activeLines = [];
 const MAX_LINES = 40;
@@ -72,6 +72,25 @@ const targetMarker = L.circleMarker(TARGET, {
   radius: 10, color: '#22d3ee', fillColor: '#22d3ee', fillOpacity: 0.25, weight: 2
 }).addTo(map);
 setInterval(() => targetMarker.setRadius(10 + Math.random() * 4), 500);
+
+function setTargetMarker(target) {
+  TARGET = [Number(target.lat), Number(target.lon)];
+  targetMarker.setLatLng(TARGET);
+  const label = document.createElement('span');
+  label.textContent = String(target.label || 'Honeypot');
+  targetMarker.bindTooltip(label, { permanent: false, direction: 'top' });
+}
+
+async function loadConfig() {
+  try {
+    const res = await fetch('/api/config');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.target) setTargetMarker(data.target);
+  } catch (error) {
+    // Keep the safe default marker when config is temporarily unavailable.
+  }
+}
 
 function animateAttack(rec) {
   if (rec.lat == null || rec.lon == null) return;
@@ -108,40 +127,74 @@ function topList(mapObj, n = 5) {
 
 function renderLists() {
   const countries = {}, users = {}, passwords = {};
-  events.forEach(e => { bump(countries, e.country || 'Unknown'); bump(users, e.username); bump(passwords, e.password); });
+  events.forEach(e => {
+    bump(countries, e.country || 'Unknown');
+    bump(users, e.username || 'unknown');
+    bump(passwords, e.password || '');
+  });
   const fill = (id, obj) => {
     const el = document.getElementById(id);
-    el.innerHTML = topList(obj).map(([k, v]) => `<li><span>${k}</span><span>${v}</span></li>`).join('')
-      || '<li style="color:var(--muted)">—</li>';
+    const rows = topList(obj);
+    el.replaceChildren();
+    if (!rows.length) {
+      const empty = document.createElement('li');
+      empty.style.color = 'var(--muted)';
+      empty.textContent = '—';
+      el.append(empty);
+      return;
+    }
+    for (const [key, value] of rows) {
+      const item = document.createElement('li');
+      const name = document.createElement('span');
+      const count = document.createElement('span');
+      name.textContent = key;
+      count.textContent = String(value);
+      item.append(name, count);
+      el.append(item);
+    }
   };
   fill('top-countries', countries);
   fill('top-users', users);
   fill('top-passwords', passwords);
-  document.getElementById('total').textContent = events.length;
-  document.getElementById('unique').textContent = new Set(events.map(e => e.src_ip)).size;
-  document.getElementById('countries').textContent = Object.keys(countries).length;
+  document.getElementById('total').textContent = String(events.length);
+  document.getElementById('unique').textContent = String(new Set(events.map(e => e.src_ip)).size);
+  document.getElementById('countries').textContent = String(Object.keys(countries).length);
 }
 
 function updateFeed(rec) {
   const feed = document.getElementById('feed');
-  if (feed.querySelector('.empty')) feed.innerHTML = '';
+  const empty = feed.querySelector('.empty');
+  if (empty) empty.remove();
   const row = document.createElement('div');
   row.className = 'row';
-  const time = new Date(rec.timestamp).toLocaleTimeString();
-  row.innerHTML = `<span>${time}</span><span class="ip">${rec.src_ip}</span>
-                   <span>${rec.country || '?'}</span><span class="usr">${rec.username}</span>`;
+  const time = document.createElement('span');
+  const ip = document.createElement('span');
+  const country = document.createElement('span');
+  const username = document.createElement('span');
+  const parsed = new Date(rec.timestamp);
+  time.textContent = Number.isNaN(parsed.getTime()) ? '--:--:--' : parsed.toLocaleTimeString();
+  ip.className = 'ip';
+  ip.textContent = String(rec.src_ip || 'unknown');
+  country.textContent = String(rec.country || '?');
+  username.className = 'usr';
+  username.textContent = String(rec.username || 'unknown');
+  row.append(time, ip, country, username);
   feed.prepend(row);
   while (feed.children.length > 30) feed.lastChild.remove();
 }
 
-const socket = io();
-socket.on('attack', rec => {
-  events.push(rec);
-  if (events.length > 500) events.shift();
-  animateAttack(rec);
-  updateFeed(rec);
-  renderLists();
-});
+async function boot() {
+  await loadConfig();
+  const socket = io();
+  socket.on('attack', rec => {
+    events.push(rec);
+    if (events.length > 500) events.shift();
+    animateAttack(rec);
+    updateFeed(rec);
+    renderLists();
+  });
+}
+boot();
 
 // refresh the "last 60s" counter every second
 setInterval(() => {
