@@ -76,20 +76,30 @@ Then open **http://localhost:8080** — the map fills with animated attacks from
 pip install pytest ruff && ruff check . && pytest -v
 ```
 
-Expected result: `5 passed` ✅
+Expected result: `25 passed` ✅
 
 ## ⚙️ Configuration
 
 Set these as environment variables:
 
 | Variable       | Default              | Description               |
-|----------------|-----------------------|----------------------------|
-| `PORT`         | `8080`                | Dashboard port             |
-| `LOG_PATH`     | `logs/attacks.jsonl`  | Shared attack log file     |
-| `TARGET_LAT`   | `35.6892`             | Map target marker latitude |
-| `TARGET_LON`   | `51.3890`             | Map target marker longitude|
-| `TARGET_LABEL` | `Honeypot`            | Target marker label        |
-| `SECRET_KEY`   | `change-me`           | Flask session secret — **set a real random value in production** |
+|----------------|----------------------|----------------------------|
+| `HOST`         | `0.0.0.0`            | Dashboard bind address     |
+| `PORT`         | `8080`               | Dashboard port             |
+| `LOG_PATH`     | `logs/attacks.jsonl` | Shared attack log file     |
+| `MAX_RECENT`   | `500`                | In-memory event buffer size|
+| `TARGET_LAT`   | `35.6892`            | Map target marker latitude |
+| `TARGET_LON`   | `51.3890`            | Map target marker longitude|
+| `TARGET_LABEL` | `Honeypot`           | Target marker label        |
+| `CORS_ALLOWED_ORIGINS` | same origin  | Comma-separated Socket.IO origins |
+| `SECRET_KEY`   | random per process   | Flask session secret — **set a stable random value in production** |
+| `SEED_DEMO`    | `false`              | Seed demo attacks on startup |
+| `SEED_COUNT`   | `60`                 | Number of demo attacks      |
+| `LOG_LEVEL`    | `INFO`               | Python logging level        |
+
+The dashboard exposes `/healthz` for container health checks and `/api/config`
+for the map target. `python -m dashboard.app` starts the HTTP/WebSocket server;
+it does not return immediately.
 
 Example:
 
@@ -107,6 +117,7 @@ live-attack-map/
 ├── dashboard/                 # Flask + SocketIO backend
 │   ├── app.py                 # Web server + WebSocket streaming
 │   ├── geo.py                 # IP geolocation (ip-api, cached)
+│   ├── tailer.py              # Partial-line and rotation-safe JSONL follower
 │   └── templates/index.html   # Leaflet map + stats panel
 ├── tools/
 │   └── seed.py                # Demo attack generator

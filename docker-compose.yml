@@ -1,7 +1,16 @@
 services:
   honeypot:
     build: .
-    command: python -m honeypot.server --port 2222
+    command:
+      - python
+      - -m
+      - honeypot.server
+      - --host
+      - 0.0.0.0
+      - --port
+      - "2222"
+      - --max-connections
+      - "50"
     ports:
       - "2222:2222"
     volumes:
@@ -11,13 +20,29 @@ services:
 
   dashboard:
     build: .
-    command: python -m dashboard.app
+    command: ["python", "-m", "dashboard.app"]
     ports:
       - "8080:8080"
     environment:
-      - TARGET_LAT=35.6892
-      - TARGET_LON=51.3890
-      - TARGET_LABEL=Honeypot
+      PORT: "8080"
+      LOG_PATH: /app/logs/attacks.jsonl
+      TARGET_LAT: "35.6892"
+      TARGET_LON: "51.3890"
+      TARGET_LABEL: Honeypot
+      SEED_DEMO: "1"
+      SEED_COUNT: "60"
     volumes:
       - ./logs:/app/logs
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=3)"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      - honeypot
     restart: unless-stopped
