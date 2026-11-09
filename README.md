@@ -9,6 +9,16 @@
 > A fake SSH honeypot that logs **real** brute-force attempts from the internet
 > and streams them to a **real-time animated world map** dashboard.
 
+## 🚀 One-click live demo
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Abolfazlrwm/live-attack-map)
+
+Deploys the **dashboard in demo mode** (seeded synthetic attack traffic) to
+Render's free plan via the included [`render.yaml`](render.yaml) blueprint —
+the map is alive about a minute after you click. The SSH honeypot itself needs
+a raw TCP port, so run it on any VPS with `docker compose up` and point
+`LOG_PATH` at the dashboard to watch **real** attacks instead of seeded ones.
+
 ## ✨ Features
 
 - **Real SSH handshake** — speaks the genuine SSH protocol (paramiko), so real
