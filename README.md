@@ -1,10 +1,14 @@
 # 🗺️ Live Attack Map
 
+<p align="center"><img src="assets/banner.png" alt="live attack map banner" width="100%"></p>
+
 [![CI](https://github.com/Abolfazlrwm/live-attack-map/actions/workflows/ci.yml/badge.svg)](https://github.com/Abolfazlrwm/live-attack-map/actions)
 [![Live demo](https://img.shields.io/badge/🔴_LIVE_demo-live--attack--map--demo.onrender.com-E25D50?style=flat&labelColor=1a1b26)](https://live-attack-map-demo.onrender.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED.svg)](docker-compose.yml)
+
+<p align="center"><img src="assets/demo.gif" alt="live attack map demo" width="100%"></p>
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 > A fake SSH honeypot that logs **real** brute-force attempts from the internet
