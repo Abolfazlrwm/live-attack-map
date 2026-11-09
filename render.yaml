@@ -1,0 +1,29 @@
+# One-click demo deployment for the live attack map dashboard (Render free plan).
+#
+# What this deploys: the Flask + SocketIO dashboard in **demo mode** — it seeds a
+# realistic synthetic attack stream so the map is alive the moment it boots.
+# What this does NOT deploy: the SSH honeypot itself. It needs a raw TCP port
+# (2222) plus host-level SSH redirection, which free web plans don't expose —
+# run it on any VPS with the included docker-compose.yml.
+#
+# Deploy: push this button on the README, or run `render blueprint launch`.
+
+services:
+  - type: web
+    name: live-attack-map-demo
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: LOG_PATH
+        value: /tmp/attacks.jsonl
+      - key: SEED_DEMO
+        value: "1"
+      - key: SEED_COUNT
+        value: "60"
+      - key: TARGET_LAT
+        value: "35.6892"
+      - key: TARGET_LON
+        value: "51.3890"
+      - key: TARGET_LABEL
+        value: Honeypot
