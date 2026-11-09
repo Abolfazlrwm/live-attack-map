@@ -1,6 +1,7 @@
 # 🗺️ Live Attack Map
 
 [![CI](https://github.com/Abolfazlrwm/live-attack-map/actions/workflows/ci.yml/badge.svg)](https://github.com/Abolfazlrwm/live-attack-map/actions)
+[![Live demo](https://img.shields.io/badge/🔴_LIVE_demo-live--attack--map--demo.onrender.com-E25D50?style=flat&labelColor=1a1b26)](https://live-attack-map-demo.onrender.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED.svg)](docker-compose.yml)
@@ -13,7 +14,10 @@
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Abolfazlrwm/live-attack-map)
 
-Deploys the **dashboard in demo mode** (seeded synthetic attack traffic) to
+**Don't want to deploy anything? [▶ Watch the running demo right now](https://live-attack-map-demo.onrender.com)**
+(free Render instance, seeded traffic — it sleeps when idle, first load wakes it in ~30s).
+
+Or deploy your own copy: (seeded synthetic attack traffic) to
 Render's free plan via the included [`render.yaml`](render.yaml) blueprint —
 the map is alive about a minute after you click. The SSH honeypot itself needs
 a raw TCP port, so run it on any VPS with `docker compose up` and point
