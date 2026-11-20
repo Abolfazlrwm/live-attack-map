@@ -2,6 +2,11 @@
 
 Only globally routable addresses are sent to the third-party service. Private,
 loopback, link-local, multicast, and reserved addresses never leave the host.
+
+The provider is ipwho.is over HTTPS: the honeypot feeds attacker IPs into this
+module, so sending them to a third party over plain HTTP (ip-api.com's free
+tier) would disclose which addresses are attacking the site to anyone who can
+observe the traffic. ipwho.is offers the same lookup over HTTPS for free.
 """
 
 from __future__ import annotations
@@ -12,8 +17,7 @@ import time
 
 import requests
 
-API_URL = "http://ip-api.com/json/{ip}"
-FIELDS = "status,message,country,countryCode,city,lat,lon,timezone,isp,org,as,query"
+API_URL = "https://ipwho.is/{ip}"
 CACHE_TTL_SECONDS = 24 * 60 * 60
 CACHE_MAX_ENTRIES = 10_000
 UNKNOWN: dict[str, object] = {
@@ -80,11 +84,9 @@ def geolocate(ip: str, timeout: float = 2.0) -> dict[str, object]:
     if cached is not None:
         return cached
 
-    params = {"fields": FIELDS}
     try:
         response = requests.get(
             API_URL.format(ip=ip),
-            params=params,
             timeout=timeout,
             headers={"User-Agent": "live-attack-map/1.x"},
         )
@@ -93,17 +95,19 @@ def geolocate(ip: str, timeout: float = 2.0) -> dict[str, object]:
     except (requests.RequestException, ValueError):
         data = {}
 
-    if not isinstance(data, dict) or data.get("status") != "success":
+    if not isinstance(data, dict) or data.get("success") is not True:
         result = dict(UNKNOWN)
     else:
+        connection = data.get("connection") or {}
+        asn = connection.get("asn")
         result = {
             "country": data.get("country") or "Unknown",
-            "country_code": data.get("countryCode") or "",
+            "country_code": data.get("country_code") or "",
             "city": data.get("city") or "",
-            "lat": data.get("lat"),
-            "lon": data.get("lon"),
-            "asn": data.get("as") or "",
-            "org": data.get("org") or data.get("isp") or "",
+            "lat": data.get("latitude"),
+            "lon": data.get("longitude"),
+            "asn": f"AS{asn}" if asn else "",
+            "org": connection.get("org") or connection.get("isp") or "",
         }
 
     _store(ip, result)
