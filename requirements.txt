@@ -2,4 +2,4 @@ flask>=3.0
 flask-socketio>=5.3
 paramiko>=3.4
 requests>=2.31
-gunicorn>=23.0
+gunicorn>=27.0.1
